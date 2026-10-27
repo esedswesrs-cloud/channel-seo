@@ -64,15 +64,15 @@
   .switch .sl::after{content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition:.2s;}
   .switch input:checked + .sl{background:var(--accent2);}
   .switch input:checked + .sl::after{left:23px;}
-  #extractBtn{
+  #extractBtn, #pfBtn{
     width:100%; margin-top:16px; padding:15px; font-size:17px; font-weight:800; letter-spacing:1px;
     border:none; border-radius:12px; cursor:pointer; color:#fff;
     background:linear-gradient(135deg, #7c3aed, #5b21b6);
     box-shadow:0 4px 16px rgba(124,58,237,.28);
     transition:transform .1s, box-shadow .2s;
   }
-  #extractBtn:active{transform:translateY(1px);}
-  #extractBtn:disabled{opacity:.55; cursor:default;}
+  #extractBtn:active, #pfBtn:active{transform:translateY(1px);}
+  #extractBtn:disabled, #pfBtn:disabled{opacity:.55; cursor:default;}
   .mini-btn{
     border:1px solid var(--accent); background:transparent; color:var(--accent);
     padding:10px 12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:700;
@@ -84,6 +84,19 @@
   .msg.err{color:var(--err);}
   .msg.ok{color:var(--ok);}
   .hidden{display:none !important;}
+  /* prompt finder */
+  .feat-pills{margin-bottom:4px;}
+  .pill.soon{opacity:.55; border-style:dashed;}
+  .dropzone{
+    border:2px dashed var(--accent); background:rgba(124,58,237,.14); border-radius:14px;
+    padding:26px 14px; text-align:center; cursor:pointer; margin-top:12px;
+    transition:background .15s, border-color .15s;
+  }
+  .dropzone:hover, .dropzone.over{background:rgba(124,58,237,.22);}
+  .dropzone .dz-ic{font-size:34px; line-height:1;}
+  .dropzone .dz-t{font-weight:700; margin-top:8px; font-size:14.5px;}
+  .dropzone .dz-s{font-size:12.5px; color:var(--dim); margin-top:4px;}
+  .dropzone img, .dropzone video{max-width:100%; border-radius:10px; margin-top:12px; max-height:260px;}
   /* hasil channel */
   .ch-head{display:flex; gap:14px; align-items:center;}
   .ch-head img{width:64px; height:64px; border-radius:50%; border:2px solid var(--accent); object-fit:cover;}
@@ -123,6 +136,7 @@
     .url-row .paste-btn{flex:0 0 auto; padding:0 14px; width:auto; border-radius:9px; font-size:14px;}
     .pills{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
     .pill{padding:9px 6px; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .feat-pills .pill{white-space:normal; line-height:1.35;}
     .switch-row{padding:8px 0 2px;}
     input[type=text], input[type=url], input[type=password], textarea, select{font-size:16px; padding:10px 11px;}
     textarea{min-height:96px;}
@@ -136,7 +150,7 @@
     .desc-box{padding:10px; font-size:13px;}
     .mini-btn{padding:11px;}
     .hint{font-size:12px;}
-    #extractBtn{font-size:16px; padding:13px; letter-spacing:2px;}
+    #extractBtn, #pfBtn{font-size:16px; padding:13px; letter-spacing:2px;}
     /* modal jadi bottom-sheet di HP */
     .modal{align-items:flex-end; padding:0;}
     .modal-box{border-radius:18px 18px 0 0; padding:16px 14px 22px; max-height:88vh; overflow:auto;}
@@ -151,16 +165,49 @@
     <button class="icon-btn" id="settingsBtn" title="Pengaturan">⚙️</button>
   </header>
 
-  <!-- LANGKAH 1 -->
+  <!-- FITUR -->
   <section class="card">
-    <div class="step-title">1 · Link Channel YouTube</div>
-    <div class="url-row">
-      <input type="url" id="urlInput" placeholder="https://www.youtube.com/@namachannel">
-      <button class="paste-btn" id="pasteBtn" type="button">Tempel</button>
+    <div class="pills feat-pills" id="featurePills">
+      <div class="pill on" data-feature="channel">1 · Link Channel YouTube</div>
+      <div class="pill" data-feature="prompt">2 · AI Prompt Finder</div>
+      <div class="pill soon" data-soon="3">3 · Segera Hadir</div>
+      <div class="pill soon" data-soon="4">4 · Segera Hadir</div>
     </div>
-    <div class="hint">Bisa link channel (@handle, /channel/UC…, /c/…, /user/…) — atau link video, nanti channel-nya yang diambil.</div>
-    <button id="extractBtn" type="button">🚀 EKSTRAK DATA</button>
-    <div class="msg hidden" id="msg"></div>
+    <!-- panel: link channel -->
+    <div id="panelChannel">
+      <div class="url-row">
+        <input type="url" id="urlInput" placeholder="https://www.youtube.com/@namachannel">
+        <button class="paste-btn" id="pasteBtn" type="button">Tempel</button>
+      </div>
+      <div class="hint">Bisa link channel (@handle, /channel/UC…, /c/…, /user/…) — atau link video, nanti channel-nya yang diambil.</div>
+      <button id="extractBtn" type="button">🚀 EKSTRAK DATA</button>
+      <div class="msg hidden" id="msg"></div>
+    </div>
+    <!-- panel: prompt finder -->
+    <div id="panelPrompt" class="hidden">
+      <div class="pills" id="pfTypePills">
+        <div class="pill on" data-pftype="image">🖼️ Gambar</div>
+        <div class="pill" data-pftype="video">🎬 Video</div>
+      </div>
+      <div class="dropzone" id="pfDrop">
+        <input type="file" id="pfFile" accept="image/*" hidden>
+        <div class="dz-ic" id="pfDzIcon">🖼️</div>
+        <div class="dz-t" id="pfDzTitle">Klik untuk mengunggah gambar</div>
+        <div class="dz-s" id="pfDzSub">JPG, PNG, WEBP, GIF — maks 10MB</div>
+        <img id="pfImgPrev" class="hidden" alt="">
+        <video id="pfVidPrev" class="hidden" controls muted playsinline></video>
+      </div>
+      <div class="hint hidden" id="pfFileInfo"></div>
+      <label for="pfLang">Bahasa Prompt:</label>
+      <select id="pfLang"></select>
+      <button id="pfBtn" type="button">✨ HASILKAN PROMPT</button>
+      <div class="msg hidden" id="pfMsg"></div>
+      <div id="pfResultWrap" class="hidden">
+        <label for="pfResult">Hasil Prompt (Bisa diedit)</label>
+        <textarea id="pfResult"></textarea>
+        <button class="mini-btn" id="pfCopyBtn" type="button" style="width:100%; padding:12px; margin-top:12px;">📋 Salin Prompt</button>
+      </div>
+    </div>
   </section>
 
   <!-- HASIL -->
@@ -233,6 +280,7 @@
   <div class="modal-box">
     <h3>⚙️ Pengaturan</h3>
     <p class="hint">Key hanya tersimpan di browser kamu (localStorage). Tidak pernah dikirim ke server mana pun kecuali API Google yang bersangkutan.</p>
+    <div id="setYt">
     <label for="ytKey">YouTube Data API Key (wajib, gratis)</label>
     <input type="password" id="ytKey" placeholder="AIza…">
     <ol>
@@ -240,19 +288,22 @@
       <li>Menu <code>APIs &amp; Services → Library</code> → cari <code>YouTube Data API v3</code> → <b>Enable</b>.</li>
       <li><code>Credentials → Create Credentials → API key</code> → salin key-nya ke sini.</li>
     </ol>
-    <label for="gemKey">Gemini API Key (opsional, untuk Bio AI)</label>
+    </div>
+    <div id="setGem">
+    <label for="gemKey">Gemini API Key (untuk Bio AI &amp; Prompt Finder)</label>
     <input type="password" id="gemKey" placeholder="AIza…">
     <ol>
       <li>Buka <code>aistudio.google.com</code> → <b>Get API Key</b> → <b>Create API key</b>.</li>
-      <li>Salin key-nya ke sini. Tanpa key ini, tombol Bio AI memakai draf template (tetap bisa diedit).</li>
+      <li>Salin key-nya ke sini. Tanpa key ini, tombol Bio AI memakai draf template (tetap bisa diedit), dan Prompt Finder tidak bisa jalan.</li>
     </ol>
+    </div>
     <button class="mini-btn" id="saveKeysBtn" type="button" style="width:100%; padding:12px;">💾 Simpan</button>
     <button class="mini-btn" id="closeSettingsBtn" type="button" style="width:100%; padding:12px; margin-top:8px;">Tutup</button>
   </div>
 </div>
 
 <script>
-const CHSEO_VER = "1.1";
+const CHSEO_VER = "1.2";
 const LS_YT = "chseo_ytkey", LS_GEM = "chseo_gemkey";
 const $ = (id) => document.getElementById(id);
 $("footer").textContent = "CHANNEL SEO v" + CHSEO_VER + " — data dari YouTube Data API • key tersimpan di browser kamu saja";
@@ -272,6 +323,7 @@ function fmtNum(n) {
 
 // ---------- pengaturan ----------
 $("settingsBtn").addEventListener("click", () => {
+  refreshSettings();
   $("ytKey").value = localStorage.getItem(LS_YT) || "";
   $("gemKey").value = localStorage.getItem(LS_GEM) || "";
   $("settingsModal").classList.remove("hidden");
@@ -465,6 +517,199 @@ $("bioAiBtn").addEventListener("click", async () => {
   }
   btn.disabled = false; btn.textContent = "✍️ Tulis Deskripsi Baru (AI)";
 });
+
+// ---------- fitur pills ----------
+let activeFeature = "channel";
+function refreshSettings() {
+  $("setYt").classList.toggle("hidden", activeFeature !== "channel");
+}
+$("featurePills").querySelectorAll(".pill").forEach((p) => {
+  p.addEventListener("click", () => {
+    if (p.classList.contains("soon")) {
+      if (activeFeature === "prompt") pfShowMsg("Fitur ini belum dirilis — tunggu update berikutnya.", false);
+      else showMsg("Fitur ini belum dirilis — tunggu update berikutnya.", false);
+      return;
+    }
+    $("featurePills").querySelectorAll(".pill").forEach((x) => x.classList.remove("on"));
+    p.classList.add("on");
+    activeFeature = p.dataset.feature;
+    $("panelChannel").classList.toggle("hidden", activeFeature !== "channel");
+    $("panelPrompt").classList.toggle("hidden", activeFeature !== "prompt");
+    refreshSettings();
+  });
+});
+
+// ---------- prompt finder ----------
+const PF_LANGS = [
+  ["id", "Bahasa Indonesia"], ["en", "English"], ["ms", "Bahasa Melayu"], ["jv", "Basa Jawa"], ["su", "Basa Sunda"],
+  ["tl", "Tagalog"], ["vi", "Tiếng Việt"], ["th", "ไทย"], ["zh", "中文 (Mandarin)"], ["ja", "日本語"], ["ko", "한국어"],
+  ["hi", "हिन्दी"], ["ur", "اردو"], ["ar", "العربية"], ["es", "Español"], ["pt", "Português"], ["fr", "Français"],
+  ["de", "Deutsch"], ["it", "Italiano"], ["ru", "Русский"], ["tr", "Türkçe"], ["nl", "Nederlands"], ["pl", "Polski"],
+  ["uk", "Українська"], ["sv", "Svenska"], ["da", "Dansk"], ["fi", "Suomi"], ["no", "Norsk"], ["cs", "Čeština"],
+  ["hu", "Magyar"], ["ro", "Română"], ["el", "Ελληνικά"], ["he", "עברית"], ["fa", "فارسی"], ["bn", "বাংলা"],
+  ["ta", "தமிழ்"], ["te", "తెలుగు"], ["mr", "मराठी"], ["pa", "ਪੰਜਾਬੀ"], ["gu", "ગુજરાતી"], ["kn", "ಕನ್ನಡ"],
+  ["ml", "മലയാളം"], ["my", "မြန်မာ"], ["km", "ខ្មែរ"], ["lo", "ລາວ"], ["mn", "Монгол"], ["ka", "ქართული"],
+  ["hy", "Հայերեն"], ["az", "Azərbaycan dili"], ["kk", "Қазақша"], ["uz", "O'zbekcha"], ["sw", "Kiswahili"],
+  ["yo", "Yorùbá"], ["ha", "Hausa"], ["am", "አማርኛ"], ["ne", "नेपाली"], ["si", "සිංහල"], ["ca", "Català"],
+  ["eu", "Euskara"], ["gl", "Galego"], ["lv", "Latviešu"], ["lt", "Lietuvių"], ["et", "Eesti"], ["sl", "Slovenščina"],
+  ["hr", "Hrvatski"], ["sr", "Српски"], ["bg", "Български"], ["mk", "Македонски"], ["sq", "Shqip"], ["is", "Íslenska"],
+  ["ga", "Gaeilge"], ["cy", "Cymraeg"], ["eo", "Esperanto"]
+];
+const pfLangSel = $("pfLang");
+PF_LANGS.forEach(([code, name]) => {
+  const o = document.createElement("option");
+  o.value = code; o.textContent = name;
+  if (code === "id") o.selected = true;
+  pfLangSel.appendChild(o);
+});
+let pfType = "image";
+let pfFile = null;
+function pfShowMsg(text, ok) {
+  const m = $("pfMsg");
+  m.textContent = text;
+  m.className = "msg " + (ok ? "ok" : "err");
+  m.classList.remove("hidden");
+}
+function pfClearFile() {
+  pfFile = null;
+  $("pfFile").value = "";
+  $("pfImgPrev").classList.add("hidden"); $("pfImgPrev").removeAttribute("src");
+  $("pfVidPrev").classList.add("hidden"); $("pfVidPrev").removeAttribute("src");
+  $("pfFileInfo").classList.add("hidden"); $("pfFileInfo").textContent = "";
+  $("pfResultWrap").classList.add("hidden");
+}
+function pfSetType(t) {
+  pfType = t;
+  $("pfTypePills").querySelectorAll(".pill").forEach((x) => x.classList.toggle("on", x.dataset.pftype === t));
+  $("pfFile").accept = t === "video" ? "video/mp4,video/webm" : "image/*";
+  $("pfDzIcon").textContent = t === "video" ? "🎬" : "🖼️";
+  $("pfDzTitle").textContent = t === "video" ? "Klik untuk mengunggah video" : "Klik untuk mengunggah gambar";
+  $("pfDzSub").textContent = t === "video" ? "MP4, WEBM — maks 30MB" : "JPG, PNG, WEBP, GIF — maks 10MB";
+  pfClearFile();
+}
+$("pfTypePills").querySelectorAll(".pill").forEach((p) => {
+  p.addEventListener("click", () => pfSetType(p.dataset.pftype));
+});
+$("pfDrop").addEventListener("click", (e) => {
+  if (e.target.closest("#pfImgPrev, #pfVidPrev")) return;
+  $("pfFile").click();
+});
+["dragover", "dragenter"].forEach((ev) => $("pfDrop").addEventListener(ev, (e) => { e.preventDefault(); $("pfDrop").classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => $("pfDrop").addEventListener(ev, (e) => { e.preventDefault(); $("pfDrop").classList.remove("over"); }));
+$("pfDrop").addEventListener("drop", (e) => {
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) pfHandleFile(f);
+});
+$("pfFile").addEventListener("change", (e) => {
+  if (e.target.files[0]) pfHandleFile(e.target.files[0]);
+});
+function pfHandleFile(f) {
+  const isVideo = pfType === "video";
+  const maxMB = isVideo ? 30 : 10;
+  const okType = isVideo ? /^video\/(mp4|webm)$/.test(f.type) : /^image\//.test(f.type);
+  if (!okType) { pfShowMsg(isVideo ? "File harus video MP4 atau WEBM." : "File harus gambar (JPG, PNG, WEBP, GIF).", false); return; }
+  if (f.size > maxMB * 1024 * 1024) { pfShowMsg("File terlalu besar — maks " + maxMB + "MB.", false); return; }
+  pfFile = f;
+  const url = URL.createObjectURL(f);
+  if (isVideo) {
+    $("pfImgPrev").classList.add("hidden");
+    const v = $("pfVidPrev"); v.src = url; v.classList.remove("hidden");
+  } else {
+    $("pfVidPrev").classList.add("hidden");
+    const im = $("pfImgPrev"); im.src = url; im.classList.remove("hidden");
+  }
+  const info = $("pfFileInfo");
+  info.textContent = f.name + " · " + (f.size / 1048576).toFixed(2) + " MB";
+  info.classList.remove("hidden");
+  $("pfMsg").classList.add("hidden");
+  $("pfResultWrap").classList.add("hidden");
+}
+function fileToDataUrl(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+}
+async function imageToPart(file) {
+  const du = await fileToDataUrl(file);
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = du; });
+  const scale = Math.min(1, 1280 / Math.max(img.width, img.height));
+  if (scale === 1) {
+    const m = du.match(/^data:(image\/[a-z+]+);base64,(.*)$/);
+    if (m) return { inlineData: { mimeType: m[1], data: m[2] } };
+  }
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(img.width * scale));
+  c.height = Math.max(1, Math.round(img.height * scale));
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  const out = c.toDataURL("image/jpeg", 0.85);
+  const m = out.match(/^data:(image\/[a-z+]+);base64,(.*)$/);
+  return { inlineData: { mimeType: m[1], data: m[2] } };
+}
+async function extractVideoFrames(file, count) {
+  const url = URL.createObjectURL(file);
+  const v = document.createElement("video");
+  v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = url;
+  await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = () => rej(new Error("Video tidak bisa dibaca.")); });
+  const dur = v.duration || 0;
+  const n = Math.max(1, Math.min(count, 6));
+  const frames = [];
+  for (let i = 0; i < n; i++) {
+    const t = dur > 0.1 ? (dur * (i + 0.5)) / n : 0;
+    await new Promise((res) => { v.onseeked = res; v.currentTime = Math.min(t, Math.max(0, dur - 0.05)); });
+    const c = document.createElement("canvas");
+    const scale = Math.min(1, 768 / (v.videoWidth || 768));
+    c.width = Math.max(1, Math.round(v.videoWidth * scale));
+    c.height = Math.max(1, Math.round(v.videoHeight * scale));
+    c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+    frames.push(c.toDataURL("image/jpeg", 0.8));
+  }
+  URL.revokeObjectURL(url);
+  return { frames, dur };
+}
+$("pfBtn").addEventListener("click", async () => {
+  if (!pfFile) { pfShowMsg(pfType === "video" ? "Unggah video dulu." : "Unggah gambar dulu.", false); return; }
+  const gemKey = localStorage.getItem(LS_GEM) || "";
+  if (!gemKey) {
+    $("settingsModal").classList.remove("hidden");
+    pfShowMsg("Prompt Finder perlu Gemini API Key (gratis, via aistudio.google.com) — isi di ⚙️ Pengaturan.", false);
+    return;
+  }
+  const langName = (PF_LANGS.find((l) => l[0] === $("pfLang").value) || ["id", "Bahasa Indonesia"])[1];
+  const btn = $("pfBtn");
+  btn.disabled = true; btn.textContent = "⏳ MEMBUAT PROMPT…";
+  try {
+    const parts = [];
+    let extra = "";
+    if (pfType === "video") {
+      const { frames, dur } = await extractVideoFrames(pfFile, 6);
+      parts.push({ text: "Frame-frame berikut diambil dari satu video (durasi " + dur.toFixed(1) + " detik). Analisis semuanya sebagai satu kesatuan." });
+      frames.forEach((f) => parts.push({ inlineData: { mimeType: "image/jpeg", data: f.split(",")[1] } }));
+      extra = "Tulis SATU prompt video yang detail untuk AI video generator (mis. Runway, Pika, Veo): deskripsikan subjek, aksi/gerakan, suasana, pencahayaan, gaya visual, dan gerakan kamera. ";
+    } else {
+      parts.push(await imageToPart(pfFile));
+      extra = "Tulis SATU prompt gambar yang detail untuk AI image generator (mis. Midjourney, DALL-E): deskripsikan subjek, komposisi, warna, pencahayaan, gaya, dan suasana. ";
+    }
+    parts.push({ text: extra + "Tulis prompt dalam bahasa " + langName + ". Keluarkan hanya prompt-nya saja, tanpa penjelasan tambahan." });
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(gemKey), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts }] })
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error((j.error && j.error.message) || "Gemini API gagal.");
+    const text = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts
+      ? j.candidates[0].content.parts.map((p) => p.text || "").join("")
+      : "";
+    if (!text.trim()) throw new Error("Gemini mengembalikan jawaban kosong.");
+    $("pfResult").value = text.trim();
+    $("pfResultWrap").classList.remove("hidden");
+    pfShowMsg("Prompt selesai dibuat.", true);
+    $("pfResult").scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch (e) {
+    pfShowMsg("Gagal: " + e.message, false);
+  }
+  btn.disabled = false; btn.textContent = "✨ HASILKAN PROMPT";
+});
+$("pfCopyBtn").addEventListener("click", (e) => copyText("pfResult", e.currentTarget));
 
 // ---------- salin ----------
 async function copyText(elId, btn) {
