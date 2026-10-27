@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHANNEL SEO — Intip Channel + Prompt Avatar & Bio</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#121a22; --panel2:#0e151c; --line:#1e2c38;
+    --txt:#e8f4f8; --dim:#8fb3c1; --accent:#a78bfa; --accent2:#7c3aed;
+    --ok:#34d399; --err:#f87171;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh; padding:16px;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+  header{padding:10px 0 14px; display:flex; align-items:center; gap:12px;}
+  .logo{font-size:30px; font-weight:900; letter-spacing:1px; line-height:1;}
+  .logo small{display:block; font-size:11px; letter-spacing:2px; color:var(--dim); font-weight:600; margin-top:4px;}
+  .logo b{color:var(--accent);}
+  .icon-btn{
+    margin-left:auto; width:44px; height:44px; border-radius:12px; font-size:20px;
+    border:1px solid var(--line); background:var(--panel2); color:var(--txt); cursor:pointer;
+    transition:background .15s;
+  }
+  .icon-btn:hover{background:#16222d;}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:18px; margin-bottom:16px; box-shadow:0 8px 24px rgba(0,0,0,.22);
+  }
+  .step-title{font-size:12.5px; font-weight:800; letter-spacing:1.5px; color:var(--accent); margin-bottom:12px; text-transform:uppercase;}
+  label{display:block; font-size:13.5px; color:var(--dim); margin:12px 0 6px;}
+  input[type=text], input[type=url], input[type=password], textarea, select{
+    width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--txt);
+    border-radius:10px; padding:12px; font-size:16px; outline:none; font-family:inherit;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  textarea{min-height:110px; resize:vertical; line-height:1.5;}
+  input:focus, textarea:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,58,237,.18);}
+  .url-row{display:flex; gap:8px;}
+  .url-row input{flex:1 1 auto;}
+  .paste-btn{
+    border:1px solid var(--accent); background:transparent; color:var(--accent);
+    padding:12px 16px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:700; white-space:nowrap;
+    transition:background .15s;
+  }
+  .paste-btn:hover{background:rgba(167,139,250,.08);}
+  .pills{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0;}
+  .pill{
+    border:1px solid var(--line); background:var(--panel2); color:var(--dim);
+    padding:10px 14px; border-radius:999px; cursor:pointer; font-size:14px;
+    font-weight:600; user-select:none; text-align:center; transition:background .15s, border-color .15s;
+  }
+  .pill.on{border-color:var(--accent); background:var(--accent2); color:#fff;}
+  .switch-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0 4px;}
+  .switch-row span{font-size:14px; padding-right:10px;}
+  .switch{position:relative; flex:0 0 auto; width:46px; height:26px;}
+  .switch input{display:none;}
+  .switch .sl{position:absolute; inset:0; background:#22303c; border-radius:999px; cursor:pointer; transition:.2s;}
+  .switch .sl::after{content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition:.2s;}
+  .switch input:checked + .sl{background:var(--accent2);}
+  .switch input:checked + .sl::after{left:23px;}
+  #extractBtn{
+    width:100%; margin-top:16px; padding:15px; font-size:17px; font-weight:800; letter-spacing:1px;
+    border:none; border-radius:12px; cursor:pointer; color:#fff;
+    background:linear-gradient(135deg, #7c3aed, #5b21b6);
+    box-shadow:0 4px 16px rgba(124,58,237,.28);
+    transition:transform .1s, box-shadow .2s;
+  }
+  #extractBtn:active{transform:translateY(1px);}
+  #extractBtn:disabled{opacity:.55; cursor:default;}
+  .mini-btn{
+    border:1px solid var(--accent); background:transparent; color:var(--accent);
+    padding:10px 12px; border-radius:10px; cursor:pointer; font-size:13px; font-weight:700;
+    transition:background .15s;
+  }
+  .mini-btn:hover{background:rgba(167,139,250,.08);}
+  .hint{font-size:12.5px; color:var(--dim); margin-top:10px; line-height:1.5;}
+  .msg{font-size:13.5px; margin-top:12px; line-height:1.5;}
+  .msg.err{color:var(--err);}
+  .msg.ok{color:var(--ok);}
+  .hidden{display:none !important;}
+  /* hasil channel */
+  .ch-head{display:flex; gap:14px; align-items:center;}
+  .ch-head img{width:64px; height:64px; border-radius:50%; border:2px solid var(--accent); object-fit:cover;}
+  .ch-head h2{font-size:19px; line-height:1.25;}
+  .ch-head p{font-size:13px; color:var(--dim); margin-top:3px; word-break:break-all;}
+  .stats{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;}
+  .stat{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px;}
+  .stat span{display:block; font-size:11px; letter-spacing:1.5px; color:var(--dim); margin-bottom:4px;}
+  .stat b{font-size:18px; font-weight:800;}
+  .desc-box{
+    background:var(--panel2); border:1px solid var(--line); border-radius:12px;
+    padding:12px; font-size:13.5px; line-height:1.6; white-space:pre-wrap;
+    max-height:180px; overflow:auto; margin-top:12px; color:var(--txt);
+  }
+  .tag{display:inline-block; background:var(--panel2); border:1px solid var(--line);
+    border-radius:999px; padding:6px 12px; font-size:13px; margin:4px 4px 0 0;}
+  /* modal */
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:flex-start; justify-content:center; padding:20px 12px; z-index:50; overflow:auto;}
+  .modal-box{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; width:100%; max-width:520px;}
+  .modal-box h3{font-size:17px; margin-bottom:6px;}
+  .modal-box ol{font-size:13px; color:var(--dim); line-height:1.7; padding-left:18px; margin:8px 0;}
+  .modal-box code{background:var(--panel2); padding:1px 6px; border-radius:6px; font-size:12px;}
+  footer{text-align:center; font-size:12px; color:var(--dim); padding:10px 0 20px;}
+  /* HP: minimalis ala clipper — ramping, rapat, bayangan halus */
+  @media (max-width: 640px){
+    body{padding:10px;}
+    .wrap{max-width:100%;}
+    header{padding:2px 0 8px;}
+    .logo{font-size:22px;}
+    .logo small{font-size:10px; letter-spacing:1.5px;}
+    .icon-btn{width:40px; height:40px; border-radius:11px; font-size:18px;}
+    .card{padding:12px; border-radius:12px; margin-bottom:10px; box-shadow:0 2px 10px rgba(0,0,0,.18);}
+    .step-title{font-size:11px; letter-spacing:1.5px; margin-bottom:8px; opacity:.9;}
+    label{font-size:12.5px; margin:10px 0 5px;}
+    .url-row{flex-direction:row; gap:8px;}
+    .url-row input{padding:10px 12px; border-radius:9px;}
+    .url-row .paste-btn{flex:0 0 auto; padding:0 14px; width:auto; border-radius:9px; font-size:14px;}
+    .pills{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+    .pill{padding:9px 6px; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .switch-row{padding:8px 0 2px;}
+    input[type=text], input[type=url], input[type=password], textarea, select{font-size:16px; padding:10px 11px;}
+    textarea{min-height:96px;}
+    .ch-head img{width:48px; height:48px;}
+    .ch-head h2{font-size:17px;}
+    .ch-head p{font-size:12px;}
+    .stats{gap:8px;}
+    .stat{padding:10px;}
+    .stat span{font-size:10px;}
+    .stat b{font-size:16px;}
+    .desc-box{padding:10px; font-size:13px;}
+    .mini-btn{padding:11px;}
+    .hint{font-size:12px;}
+    #extractBtn{font-size:16px; padding:13px; letter-spacing:2px;}
+    /* modal jadi bottom-sheet di HP */
+    .modal{align-items:flex-end; padding:0;}
+    .modal-box{border-radius:18px 18px 0 0; padding:16px 14px 22px; max-height:88vh; overflow:auto;}
+    footer{font-size:11px; padding:6px 0 14px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">CHANNEL <b>SEO</b><small>INTIP CHANNEL • PROMPT AVATAR & BIO</small></div>
+    <button class="icon-btn" id="settingsBtn" title="Pengaturan">⚙️</button>
+  </header>
+
+  <!-- LANGKAH 1 -->
+  <section class="card">
+    <div class="step-title">1 · Link Channel YouTube</div>
+    <div class="url-row">
+      <input type="url" id="urlInput" placeholder="https://www.youtube.com/@namachannel">
+      <button class="paste-btn" id="pasteBtn" type="button">Tempel</button>
+    </div>
+    <div class="hint">Bisa link channel (@handle, /channel/UC…, /c/…, /user/…) — atau link video, nanti channel-nya yang diambil.</div>
+    <button id="extractBtn" type="button">🚀 EKSTRAK DATA</button>
+    <div class="msg hidden" id="msg"></div>
+  </section>
+
+  <!-- HASIL -->
+  <section class="card hidden" id="resultCard">
+    <div class="step-title">2 · Data Channel</div>
+    <div class="ch-head">
+      <img id="chAvatar" alt="">
+      <div>
+        <h2 id="chName">—</h2>
+        <p id="chHandle">—</p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>NEGARA</span><b id="statCountry">—</b></div>
+      <div class="stat"><span>TOTAL VIDEO</span><b id="statVideos">—</b></div>
+      <div class="stat"><span>TOTAL VIEWS</span><b id="statViews">—</b></div>
+      <div class="stat"><span>SUBSCRIBERS</span><b id="statSubs">—</b></div>
+    </div>
+    <label>Deskripsi (Asli)</label>
+    <div class="desc-box" id="descOrig">—</div>
+  </section>
+
+  <!-- AVATAR STUDIO -->
+  <section class="card hidden" id="avatarCard">
+    <div class="step-title">3 · AI Avatar Studio</div>
+    <label for="avatarPrompt">Prompt Gambar Dasar (Bisa diedit)</label>
+    <textarea id="avatarPrompt"></textarea>
+    <label>Mode Pembuatan</label>
+    <div class="pills" id="modePills">
+      <div class="pill on" data-mode="remaster">✨ Remaster Avatar Asli</div>
+      <div class="pill" data-mode="baru">🆕 Buat Avatar Baru</div>
+    </div>
+    <div class="switch-row">
+      <span>Ganti Wajah / Karakter</span>
+      <label class="switch"><input type="checkbox" id="faceToggle"><span class="sl"></span></label>
+    </div>
+    <label for="overlayText">Teks Overlay (Opsional)</label>
+    <textarea id="overlayText" placeholder="Cth: MR&#10;BEAST" style="min-height:70px;"></textarea>
+    <div class="hint">*Enter untuk baris baru. Teks ini akan dilukis ke dalam gambar.</div>
+    <button class="mini-btn" id="copyAvatarBtn" type="button" style="width:100%; padding:12px; margin-top:12px;">📋 Salin Prompt Avatar</button>
+  </section>
+
+  <!-- BIO -->
+  <section class="card hidden" id="bioCard">
+    <div class="step-title">4 · AI Bio Generator</div>
+    <div class="hint">Buat deskripsi 'About' yang 100% baru, pro, &amp; menarik sponsor.</div>
+    <button class="mini-btn" id="bioAiBtn" type="button" style="width:100%; padding:12px; margin-top:12px;">✍️ Tulis Deskripsi Baru (AI)</button>
+    <label for="bioResult">Deskripsi Baru (Bisa diedit)</label>
+    <textarea id="bioResult"></textarea>
+    <button class="mini-btn" id="bioCopyBtn" type="button" style="width:100%; padding:12px; margin-top:12px;">📋 Salin Deskripsi</button>
+    <div class="hint" id="bioNote"></div>
+  </section>
+
+  <!-- HASHTAG + MIDJOURNEY -->
+  <section class="card hidden" id="extraCard">
+    <div class="step-title">5 · Hashtag &amp; Prompt Lain</div>
+    <label>Hashtag (Dari Bio)</label>
+    <div id="hashtagBox"></div>
+    <label for="mjPrompt">Midjourney Prompt</label>
+    <textarea id="mjPrompt"></textarea>
+    <div class="hint">*Gunakan prompt ini di AI lain (Midjourney / DALL-E) untuk hasil yang lebih bervariasi.</div>
+    <button class="mini-btn" id="copyMjBtn" type="button" style="width:100%; padding:12px; margin-top:12px;">📋 Salin Midjourney Prompt</button>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+
+<!-- MODAL PENGATURAN -->
+<div class="modal hidden" id="settingsModal">
+  <div class="modal-box">
+    <h3>⚙️ Pengaturan</h3>
+    <p class="hint">Key hanya tersimpan di browser kamu (localStorage). Tidak pernah dikirim ke server mana pun kecuali API Google yang bersangkutan.</p>
+    <label for="ytKey">YouTube Data API Key (wajib, gratis)</label>
+    <input type="password" id="ytKey" placeholder="AIza…">
+    <ol>
+      <li>Buka <code>console.cloud.google.com</code> → buat project baru.</li>
+      <li>Menu <code>APIs &amp; Services → Library</code> → cari <code>YouTube Data API v3</code> → <b>Enable</b>.</li>
+      <li><code>Credentials → Create Credentials → API key</code> → salin key-nya ke sini.</li>
+    </ol>
+    <label for="gemKey">Gemini API Key (opsional, untuk Bio AI)</label>
+    <input type="password" id="gemKey" placeholder="AIza…">
+    <ol>
+      <li>Buka <code>aistudio.google.com</code> → <b>Get API Key</b> → <b>Create API key</b>.</li>
+      <li>Salin key-nya ke sini. Tanpa key ini, tombol Bio AI memakai draf template (tetap bisa diedit).</li>
+    </ol>
+    <button class="mini-btn" id="saveKeysBtn" type="button" style="width:100%; padding:12px;">💾 Simpan</button>
+    <button class="mini-btn" id="closeSettingsBtn" type="button" style="width:100%; padding:12px; margin-top:8px;">Tutup</button>
+  </div>
+</div>
+
+<script>
+const CHSEO_VER = "1.1";
+const LS_YT = "chseo_ytkey", LS_GEM = "chseo_gemkey";
+const $ = (id) => document.getElementById(id);
+$("footer").textContent = "CHANNEL SEO v" + CHSEO_VER + " — data dari YouTube Data API • key tersimpan di browser kamu saja";
+let selMode = "remaster";
+let chData = null;
+
+function showMsg(text, ok) {
+  const m = $("msg");
+  m.textContent = text;
+  m.className = "msg " + (ok ? "ok" : "err");
+  m.classList.remove("hidden");
+}
+function fmtNum(n) {
+  if (n === undefined || n === null) return "—";
+  return Number(n).toLocaleString("id-ID");
+}
+
+// ---------- pengaturan ----------
+$("settingsBtn").addEventListener("click", () => {
+  $("ytKey").value = localStorage.getItem(LS_YT) || "";
+  $("gemKey").value = localStorage.getItem(LS_GEM) || "";
+  $("settingsModal").classList.remove("hidden");
+});
+$("closeSettingsBtn").addEventListener("click", () => $("settingsModal").classList.add("hidden"));
+$("settingsModal").addEventListener("click", (e) => {
+  if (e.target === $("settingsModal")) $("settingsModal").classList.add("hidden");
+});
+$("saveKeysBtn").addEventListener("click", () => {
+  localStorage.setItem(LS_YT, $("ytKey").value.trim());
+  localStorage.setItem(LS_GEM, $("gemKey").value.trim());
+  $("settingsModal").classList.add("hidden");
+  showMsg("Key tersimpan di browser ini.", true);
+});
+
+// ---------- tempel ----------
+$("pasteBtn").addEventListener("click", async () => {
+  try {
+    const t = await navigator.clipboard.readText();
+    if (t) $("urlInput").value = t.trim();
+  } catch (e) { /* izin clipboard ditolak; abaikan */ }
+});
+
+// ---------- mode pills ----------
+$("modePills").querySelectorAll(".pill").forEach((p) => {
+  p.addEventListener("click", () => {
+    $("modePills").querySelectorAll(".pill").forEach((x) => x.classList.remove("on"));
+    p.classList.add("on");
+    selMode = p.dataset.mode;
+    refreshPrompts();
+  });
+});
+$("faceToggle").addEventListener("change", refreshPrompts);
+
+// ---------- parse input ----------
+function parseChannelInput(raw) {
+  let u = (raw || "").trim();
+  if (!u) return null;
+  if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+  let url;
+  try { url = new URL(u); } catch (e) { return null; }
+  const path = url.pathname.replace(/\/+$/, "");
+  const mChan = path.match(/^\/channel\/(UC[\w-]{20,})/);
+  if (mChan) return { kind: "id", value: mChan[1] };
+  const mHandle = path.match(/^\/@([^\/\?]+)/);
+  if (mHandle) return { kind: "handle", value: decodeURIComponent(mHandle[1]) };
+  const mUser = path.match(/^\/(user|c)\/([^\/\?]+)/);
+  if (mUser) return { kind: "search", value: decodeURIComponent(mUser[2]) };
+  // link video -> pakai oEmbed publik (tanpa key) untuk dapat URL channel-nya
+  if (path === "/watch" || url.hostname === "youtu.be" || path.startsWith("/shorts/") || path.startsWith("/live/")) {
+    return { kind: "video", value: u };
+  }
+  return null;
+}
+async function resolveVideoToChannel(videoUrl) {
+  const r = await fetch("https://www.youtube.com/oembed?url=" + encodeURIComponent(videoUrl) + "&format=json");
+  if (!r.ok) throw new Error("Link video tidak dikenali YouTube.");
+  const j = await r.json();
+  const parsed = parseChannelInput(j.author_url || "");
+  if (!parsed) throw new Error("Channel video ini tidak bisa dibaca.");
+  return parsed;
+}
+async function fetchChannel(parsed, ytKey) {
+  const base = "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&key=" + encodeURIComponent(ytKey);
+  let url = base;
+  if (parsed.kind === "id") url += "&id=" + encodeURIComponent(parsed.value);
+  else if (parsed.kind === "handle") url += "&forHandle=" + encodeURIComponent(parsed.value);
+  else if (parsed.kind === "search") {
+    const s = await fetch("https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&maxResults=1&q=" + encodeURIComponent(parsed.value) + "&key=" + encodeURIComponent(ytKey));
+    const sj = await s.json();
+    if (!s.ok) throw new Error((sj.error && sj.error.message) || "Pencarian channel gagal.");
+    if (!sj.items || !sj.items.length) throw new Error("Channel tidak ditemukan.");
+    url += "&id=" + encodeURIComponent(sj.items[0].snippet.channelId);
+  }
+  const r = await fetch(url);
+  const j = await r.json();
+  if (!r.ok) {
+    const msg = (j.error && j.error.message) || "Gagal mengambil data channel.";
+    if (r.status === 403 && /API key not valid/i.test(msg)) throw new Error("API key tidak valid. Periksa key di ⚙️ Pengaturan.");
+    if (r.status === 403) throw new Error("API key ditolak — pastikan YouTube Data API v3 sudah di-Enable di project key ini, dan kuota masih ada.");
+    throw new Error(msg);
+  }
+  if (!j.items || !j.items.length) throw new Error("Channel tidak ditemukan.");
+  return j.items[0];
+}
+
+// ---------- prompt builders ----------
+function baseAvatarPrompt() {
+  return "A captivating, high-quality profile picture / avatar for a YouTube channel named \"" + (chData ? chData.snippet.title : "") + "\". Visual elements: charismatic central character, bold colors, clean background, professional YouTube avatar style, highly detailed, eye-catching even at small size.";
+}
+function refreshPrompts() {
+  if (!chData) return;
+  let p = baseAvatarPrompt();
+  if (selMode === "remaster") {
+    p += " Use the original channel avatar as the main reference for layout and mood (remaster: keep the same character and atmosphere, improve quality and detail).";
+  } else {
+    p += " Create a completely new, original character and composition. Do not copy any existing avatar.";
+  }
+  if ($("faceToggle").checked) p += " Change the face / character to a new original one.";
+  const ov = $("overlayText").value.trim();
+  if (ov) p += " Include overlay text, painted into the image, reading:\n" + ov;
+  $("avatarPrompt").value = p;
+  const name = chData.snippet.title;
+  $("mjPrompt").value = "Create a highly detailed YouTube channel avatar/logo concept for: \"" + name + "\". Visual elements must include: charismatic central character, bold composition, strong color contrast, clean background, professional logo style, suitable as a small profile picture. --ar 1:1";
+}
+$("overlayText").addEventListener("input", refreshPrompts);
+
+function extractHashtags(text) {
+  const m = (text || "").match(/#[\p{L}\p{N}_]+/gu);
+  return m ? [...new Set(m)] : [];
+}
+function templateBio() {
+  const s = chData.snippet, st = chData.statistics;
+  return s.title + " — channel dengan " + fmtNum(st.subscriberCount) + " subscriber dan " + fmtNum(st.videoCount) + " video. " +
+    (s.description ? s.description.split("\n")[0] : "") +
+    " Subscribe untuk konten-konten terbaru setiap minggunya!";
+}
+
+// ---------- ekstrak ----------
+$("extractBtn").addEventListener("click", async () => {
+  const ytKey = localStorage.getItem(LS_YT) || "";
+  if (!ytKey) {
+    $("settingsModal").classList.remove("hidden");
+    showMsg("Perlu YouTube Data API Key (gratis) dulu — isi di ⚙️ Pengaturan, panduan ada di dalam modal.", false);
+    return;
+  }
+  const parsed0 = parseChannelInput($("urlInput").value);
+  if (!parsed0) {
+    showMsg("Link tidak dikenali. Tempel link channel (@handle, /channel/UC…) atau link video.", false);
+    return;
+  }
+  const btn = $("extractBtn");
+  btn.disabled = true; btn.textContent = "⏳ MENGAMBIL DATA…";
+  try {
+    const parsed = parsed0.kind === "video" ? await resolveVideoToChannel(parsed0.value) : parsed0;
+    const item = await fetchChannel(parsed, ytKey);
+    chData = item;
+    const s = item.snippet, st = item.statistics;
+    $("chAvatar").src = (s.thumbnails && (s.thumbnails.high || s.thumbnails.medium || s.thumbnails.default || {}).url) || "";
+    $("chName").textContent = s.title || "—";
+    $("chHandle").textContent = (s.customUrl ? s.customUrl + " · " : "") + item.id;
+    $("statCountry").textContent = s.country || "—";
+    $("statVideos").textContent = fmtNum(st.videoCount);
+    $("statViews").textContent = fmtNum(st.viewCount);
+    $("statSubs").textContent = fmtNum(st.subscriberCount);
+    $("descOrig").textContent = s.description || "(tidak ada deskripsi)";
+    refreshPrompts();
+    $("bioResult").value = templateBio();
+    $("bioNote").textContent = "Draf template (bisa diedit). Tekan tombol AI di atas untuk tulis ulang dengan Gemini — perlu Gemini API Key di ⚙️.";
+    const tags = extractHashtags(s.description || "");
+    $("hashtagBox").innerHTML = tags.length
+      ? tags.map((t) => "<span class=\"tag\">" + t + "</span>").join("")
+      : "<span class=\"hint\">Tidak ditemukan hashtag.</span>";
+    ["resultCard", "avatarCard", "bioCard", "extraCard"].forEach((id) => $(id).classList.remove("hidden"));
+    showMsg("Data channel berhasil ditarik.", true);
+    $("resultCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    showMsg("Gagal: " + e.message, false);
+  }
+  btn.disabled = false; btn.textContent = "🚀 EKSTRAK DATA";
+});
+
+// ---------- bio AI ----------
+$("bioAiBtn").addEventListener("click", async () => {
+  if (!chData) { showMsg("Ekstrak data channel dulu.", false); return; }
+  const gemKey = localStorage.getItem(LS_GEM) || "";
+  if (!gemKey) {
+    $("settingsModal").classList.remove("hidden");
+    showMsg("Bio AI perlu Gemini API Key (gratis, via aistudio.google.com) — isi di ⚙️ Pengaturan. Sementara itu draf template di bawah tetap bisa diedit & disalin.", false);
+    return;
+  }
+  const btn = $("bioAiBtn");
+  btn.disabled = true; btn.textContent = "⏳ MENULIS…";
+  try {
+    const prompt = "Tulis deskripsi 'About' YouTube yang 100% baru, profesional, dan menarik sponsor, dalam bahasa yang sama dengan deskripsi asli berikut. Channel: \"" + chData.snippet.title + "\" (" + fmtNum(chData.statistics.subscriberCount) + " subscriber, " + fmtNum(chData.statistics.videoCount) + " video). Deskripsi asli: " + (chData.snippet.description || "-") + ". Hasilnya hanya teks deskripsi, tanpa penjelasan tambahan.";
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(gemKey), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error((j.error && j.error.message) || "Gemini API gagal.");
+    const text = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts
+      ? j.candidates[0].content.parts.map((p) => p.text || "").join("")
+      : "";
+    if (!text.trim()) throw new Error("Gemini mengembalikan jawaban kosong.");
+    $("bioResult").value = text.trim();
+    $("bioNote").textContent = "Ditulis ulang oleh Gemini — silakan edit sebelum disalin.";
+  } catch (e) {
+    showMsg("Bio AI gagal: " + e.message, false);
+  }
+  btn.disabled = false; btn.textContent = "✍️ Tulis Deskripsi Baru (AI)";
+});
+
+// ---------- salin ----------
+async function copyText(elId, btn) {
+  const el = $(elId);
+  try {
+    await navigator.clipboard.writeText(el.value);
+    const old = btn.textContent;
+    btn.textContent = "✅ Tersalin!";
+    setTimeout(() => { btn.textContent = old; }, 2000);
+  } catch (e) {
+    el.select();
+    document.execCommand("copy");
+  }
+}
+$("copyAvatarBtn").addEventListener("click", (e) => copyText("avatarPrompt", e.currentTarget));
+$("bioCopyBtn").addEventListener("click", (e) => copyText("bioResult", e.currentTarget));
+$("copyMjBtn").addEventListener("click", (e) => copyText("mjPrompt", e.currentTarget));
+</script>
+</body>
+</html>
